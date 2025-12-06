@@ -1,6 +1,6 @@
 export async function getProducts() {
   try {
-    const url = import.meta.env.VITE_PRODUCTS_API;
+    const url = "/api/products"; // 🔥 ahora llamamos al backend real
     const res = await fetch(url);
 
     if (!res.ok) {
@@ -9,6 +9,7 @@ export async function getProducts() {
 
     const data = await res.json();
 
+    // Transformación → React-friendly format
     const products = data.map((item, index) => ({
       id: item.Id || index,
       name: item.name,
