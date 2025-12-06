@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { getProducts } from "@/data/products";
+import { getProducts } from "@/api/products";
 import ProductCard from "@/components/ProductCard";
 import Categories from "@/components/Categories";
 
@@ -10,14 +10,16 @@ export default function Catalog() {
   const [searchQuery, setSearchQuery] = useState("");
 
   // 🔥 Cargar productos desde Google Sheets (vía /api/products)
-  useEffect(() => {
-    async function loadProducts() {
-      const products = await getProducts();
-      setAllProducts(products);
-      setVisibleProducts(products); // primera vista
-    }
-    loadProducts();
-  }, []);
+import { getProducts } from "@/api/products";
+
+useEffect(() => {
+  async function load() {
+    const items = await getProducts();
+    setProducts(items);
+  }
+  load();
+}, []);
+
 
   // 🔎 FILTROS: categoría + búsqueda
   const filteredProducts = useMemo(() => {

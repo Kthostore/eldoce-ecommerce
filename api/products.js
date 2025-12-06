@@ -1,14 +1,31 @@
-export default async function handler(req, res) {
+export async function getProducts() {
   try {
-    const url =
-      "https://script.google.com/macros/s/AKfycbyRxxSX0NqJtF49LUBmbJkcB3wz8E5QcoALXwPgFBUK7InTFdjOUnN7zooEXLYfIfyQ/exec";
+    const url = import.meta.env.VITE_PRODUCTS_API; // tu Apps Script URL
+    const res = await fetch(url);
 
-    const response = await fetch(url);
-    const data = await response.json();
+    if (!res.ok) {
+      throw new Error("Error al obtener productos");
+    }
 
-    return res.status(200).json({ products: data });
+    const data = await res.json();
+
+    // Transformación → React-friendly format
+    const products = data.map((item, index) => ({
+      id: item.Id || index,
+      name: item.name,
+      price: parseFloat(
+        item.price
+          ?.replace("$", "")
+          ?.replace(".", "")
+          ?.replace(",", ".") || 0
+      ),
+      category: item.category?.split(",").map((c) => c.trim()) || [],
+      image: item.image1,
+    }));
+
+    return products;
   } catch (error) {
-    console.error("Error en /api/products:", error);
-    return res.status(500).json({ error: "No se pudo cargar el catálogo" });
+    console.error("API ERROR:", error);
+    return [];
   }
 }
