@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import MainLayout from "@/layouts/MainLayout";
 
-import App from "@/App";
-import Catalog from "@/pages/Catalog";
+import App from "@/App.jsx";
+import Catalog from "@/pages/Catalog.jsx";
 // import Admin from "@/pages/Admin" // lo agregamos después
 
 export default function AppRouter() {

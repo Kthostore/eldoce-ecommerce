@@ -35,3 +35,5 @@ Thumbs.db
 # If you're using pnpm or yarn:
 pnpm-lock.yaml
 yarn.lock
+.vercel
+.env*.local
