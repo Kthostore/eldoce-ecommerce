@@ -10,13 +10,17 @@ export default function Catalog() {
   const [searchQuery, setSearchQuery] = useState("");
 
   // 🔥 Cargar productos desde Google Sheets (vía /api/products)
-import { getProducts } from "@/api/products";
-
 useEffect(() => {
   async function load() {
     const items = await getProducts();
-    setProducts(items);
+
+    // Guardar todos los productos
+    setAllProducts(items);
+
+    // Inicialmente mostrar todos
+    setVisibleProducts(items);
   }
+
   load();
 }, []);
 
