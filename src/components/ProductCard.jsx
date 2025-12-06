@@ -1,6 +1,7 @@
 import React from 'react';
 
-const StickerCard = ({ sticker }) => {
+const ProductCard = ({ product }) => {
+
   // Detecta si es ruta local, Google Drive o CDN
   const resolveImage = (src) => {
     if (!src) return "/fallback.png";
@@ -41,4 +42,5 @@ const StickerCard = ({ sticker }) => {
   );
 };
 
-export default StickerCard;
+export default ProductCard;
+
