@@ -1,119 +1,72 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
-import { getProducts } from "@/api/products";
+import { useState, useEffect, useMemo } from "react";
 import ProductCard from "@/components/ProductCard";
 import Categories from "@/components/Categories";
 
 export default function Catalog() {
-  const [allProducts, setAllProducts] = useState([]);
-  const [visibleProducts, setVisibleProducts] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("Todos");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [products, setProducts] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("todos");
+  const [loading, setLoading] = useState(true);
 
-  // 🔥 Cargar productos desde Google Sheets (vía /api/products)
-useEffect(() => {
-  async function load() {
-    const items = await getProducts();
+  // 🔥 Cargar productos desde tu backend real en Vercel
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await fetch("/api/products");
+        const data = await res.json();
 
-    // Guardar todos los productos
-    setAllProducts(items);
+        console.log("Productos cargados:", data);
+        setProducts(data);
+      } catch (error) {
+        console.error("Error cargando productos:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
 
-    // Inicialmente mostrar todos
-    setVisibleProducts(items);
+    load();
+  }, []);
+
+  // 🔎 Filtrar productos por categoría
+  const filteredProducts = useMemo(() => {
+    if (selectedCategory === "todos") return products;
+
+    return products.filter((p) =>
+      p.category?.some((c) => c.toLowerCase() === selectedCategory.toLowerCase())
+    );
+  }, [products, selectedCategory]);
+
+  // 🌀 Loading UI
+  if (loading) {
+    return (
+      <div className="w-full text-center mt-10 text-xl font-semibold">
+        Cargando productos…
+      </div>
+    );
   }
 
-  load();
-}, []);
-
-
-  // 🔎 FILTROS: categoría + búsqueda
-  const filteredProducts = useMemo(() => {
-    let result = allProducts;
-
-    if (selectedCategory !== "Todos") {
-      result = result.filter((product) =>
-        product.category
-          ?.toLowerCase()
-          .includes(selectedCategory.toLowerCase())
-      );
-    }
-
-    if (searchQuery) {
-      result = result.filter((product) =>
-        product.name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    return result;
-  }, [allProducts, selectedCategory, searchQuery]);
-
-  const hasProducts = filteredProducts.length > 0;
-
-  // 👉 Selección de categoría
-  const handleSelectCategoryWrapper = useCallback(
-    (category) => {
-      setSelectedCategory(category);
-      setVisibleProducts(filteredProducts);
-    },
-    [filteredProducts]
-  );
-
-  // 🔥 Scroll infinito
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollPosition = window.innerHeight + window.scrollY;
-      const threshold =
-        document.documentElement.scrollHeight - 200;
-
-      if (scrollPosition >= threshold) {
-        setVisibleProducts((prev) => {
-          if (filteredProducts.length === 0) return prev;
-          return [...prev, ...filteredProducts];
-        });
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [filteredProducts]);
-
   return (
-    <section className="py-8 md:py-12 bg-[#E2E2E2]">
-      <div className="max-w-6xl mx-auto px-4 flex flex-col gap-6 md:gap-8">
-        
-        {/* Categorías */}
-        <Categories
-          selectedCategory={selectedCategory}
-          onSelectCategory={handleSelectCategoryWrapper}
-        />
+    <div className="max-w-6xl mx-auto p-4">
+      <h1 className="text-3xl font-bold mb-4">Catálogo</h1>
 
-        {/* Contenedor general */}
-        <div className="rounded-3xl bg-white/30 backdrop-blur-sm border border-white/20 shadow-inner p-4 md:p-6 min-h-[400px]">
+      {/* Categorías */}
+      <Categories
+        selected={selectedCategory}
+        onSelect={setSelectedCategory}
+      />
 
-          {hasProducts ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-              {visibleProducts.map((product, index) => (
-                <ProductCard
-                  key={`${product.id}-${index}`}
-                  product={product}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="w-full flex flex-col items-center justify-center text-center p-8 min-h-[300px]">
-              <p className="text-lg text-gray-600 font-medium">
-                {searchQuery
-                  ? `No encontramos productos que coincidan con "${searchQuery}"`
-                  : "No hay productos en esta categoría… todavía."
-                }
-              </p>
-              <p className="text-sm text-gray-500 mt-2">
-                Prueba con otra búsqueda o categoría.
-              </p>
-            </div>
-          )}
+      {/* Si no hay productos */}
+      {filteredProducts.length === 0 && (
+        <p className="mt-6 text-gray-600">
+          No hay productos en esta categoría… todavía.
+        </p>
+      )}
 
-        </div>
+      {/* Grid de productos */}
+      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        {filteredProducts.map((product) => (
+          <ProductCard key={product.id} item={product} />
+        ))}
       </div>
-    </section>
+    </div>
   );
 }
