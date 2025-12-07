@@ -1,39 +1,51 @@
 export default async function handler(req, res) {
   try {
-    const GOOGLE_SCRIPT_URL =
+    // 🔥 URL NUEVA de tu Apps Script
+    const SHEETS_URL =
       "https://script.google.com/macros/s/AKfycbzipO3QveE165OWqhV88mXyvJBcRieRmll8LlGjHOaAPmrbPgMdJZji2ssznf7C-f_e/exec";
 
-    const response = await fetch(GOOGLE_SCRIPT_URL);
-
-    if (!response.ok) {
-      const txt = await response.text();
-      console.error("GOOGLE SCRIPT FAIL:", txt);
-      return res.status(500).json({ error: "Error al obtener datos" });
-    }
-
+    // Llamar al Apps Script
+    const response = await fetch(SHEETS_URL);
     const rawData = await response.json();
 
     if (!Array.isArray(rawData)) {
-      console.error("GOOGLE SCRIPT ERROR: respuesta no es array", rawData);
-      return res.status(500).json({ error: "Datos inválidos" });
+      throw new Error("Formato no válido desde Google Sheets");
     }
 
-    const products = rawData.map((item, index) => ({
-      id: item.Id || index,
-      name: item.name || "",
-      price: parseFloat(
-        item.price
-          ?.replace("$", "")
-          ?.replace(".", "")
-          ?.replace(",", ".") || "0"
-      ),
-      category: item.category?.split(",").map((c) => c.trim()) || [],
-      image: item.image1 || ""
-    }));
+    // Transformación → Formato limpio para la tienda
+    const products = rawData.map((item, index) => {
+      // 🧼 Sanear precio (string o número)
+      const cleanPrice = (() => {
+        const raw = item.price;
 
-    return res.status(200).json(products);
+        // Si viene como número → devolver directo
+        if (typeof raw === "number") return raw;
+
+        // Si viene como string → limpiar formato $38.900,00
+        if (typeof raw === "string") {
+          return parseFloat(
+            raw
+              .replace("$", "")
+              .replace(/\./g, "") // miles
+              .replace(",", ".")  // decimal
+          );
+        }
+
+        return 0;
+      })();
+
+      return {
+        id: item.Id || index + 1,
+        name: item.name || "",
+        price: cleanPrice,
+        category: item.category?.split(",").map((c) => c.trim()) || [],
+        image: item.image1 || "",
+      };
+    });
+
+    res.status(200).json(products);
   } catch (error) {
     console.error("API BACKEND ERROR:", error);
-    return res.status(500).json({ error: "Error interno del servidor" });
+    res.status(500).json({ error: "Error interno del servidor" });
   }
 }
