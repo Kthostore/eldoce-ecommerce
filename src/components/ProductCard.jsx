@@ -1,34 +1,42 @@
 import React from "react";
 
 const ProductCard = ({ item }) => {
-  // resolver imagen desde Drive, URL o local
-  const resolveImage = (src) => {
-    if (!src) return "/fallback.png";
+  const extractDriveId = (url) => {
+    const patterns = [
+      /\/d\/(.*?)\//, // /file/d/<id>/view
+      /[?&]id=([^&#]+)/, // ?id=<id>
+    ];
 
-    // Google Drive → normalizar a formato directo uc?export=view
-    if (src.includes("drive.google.com")) {
-      // /file/d/<id>/view
-      const pathMatch = src.match(/\/d\/(.*?)\//);
-      if (pathMatch?.[1]) {
-        return `https://drive.google.com/uc?export=view&id=${pathMatch[1]}`;
-      }
-
-      // ?id=<id>
-      const queryMatch = src.match(/[?&]id=([^&#]+)/);
-      if (queryMatch?.[1]) {
-        return `https://drive.google.com/uc?export=view&id=${queryMatch[1]}`;
-      }
-
-      // Si ya viene como uc?export=view → devolver intacto
-      return src.replace("export=download", "export=view");
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match?.[1]) return match[1];
     }
 
-    // URL normal
+    return null;
+  };
+
+  // resolver imagen desde Drive, URL o local
+  const resolveImage = (src) => {
+    if (!src) {
+      return "https://via.placeholder.com/600x600/546b75/ffffff?text=Sin+imagen";
+    }
+
+    if (src.includes("drive.google.com")) {
+      const id = extractDriveId(src);
+      if (id) return `https://drive.google.com/uc?export=view&id=${id}`;
+
+      // Asegurar que las variantes uc?id también usen export=view
+      if (src.includes("export=download") || src.includes("uc?id=")) {
+        return src.replace("export=download", "export=view").replace("uc?id=", "uc?export=view&id=");
+      }
+
+      return src;
+    }
+
     if (src.startsWith("http://") || src.startsWith("https://")) {
       return src;
     }
 
-    // archivo local en /public/stickers/
     return `/stickers/${src}`;
   };
 
