@@ -5,6 +5,8 @@ const ProductCard = ({ item }) => {
     const patterns = [
       /\/d\/(.*?)\//, // /file/d/<id>/view
       /[?&]id=([^&#]+)/, // ?id=<id>
+      /\/open\/(.*?)\?/, // /open/<id>?...
+      /\/uc\/(.*?)\?/, // /uc/<id>?...
     ];
 
     for (const pattern of patterns) {
@@ -17,27 +19,36 @@ const ProductCard = ({ item }) => {
 
   // resolver imagen desde Drive, URL o local
   const resolveImage = (src) => {
-    if (!src) {
+    const cleanSrc = src?.trim();
+
+    if (!cleanSrc) {
       return "https://via.placeholder.com/600x600/546b75/ffffff?text=Sin+imagen";
     }
 
-    if (src.includes("drive.google.com")) {
-      const id = extractDriveId(src);
+    const isDriveHost =
+      cleanSrc.includes("drive.google.com") ||
+      cleanSrc.includes("drive.usercontent.google.com") ||
+      cleanSrc.includes("googleusercontent.com");
+
+    if (isDriveHost) {
+      const id = extractDriveId(cleanSrc);
       if (id) return `https://drive.google.com/uc?export=view&id=${id}`;
 
       // Asegurar que las variantes uc?id también usen export=view
-      if (src.includes("export=download") || src.includes("uc?id=")) {
-        return src.replace("export=download", "export=view").replace("uc?id=", "uc?export=view&id=");
+      if (cleanSrc.includes("export=download") || cleanSrc.includes("uc?id=")) {
+        return cleanSrc
+          .replace("export=download", "export=view")
+          .replace("uc?id=", "uc?export=view&id=");
       }
 
-      return src;
+      return cleanSrc;
     }
 
-    if (src.startsWith("http://") || src.startsWith("https://")) {
-      return src;
+    if (cleanSrc.startsWith("http://") || cleanSrc.startsWith("https://")) {
+      return cleanSrc;
     }
 
-    return `/stickers/${src}`;
+    return `/stickers/${cleanSrc}`;
   };
 
   return (
