@@ -1,30 +1,21 @@
-// src/components/Header.jsx
 import React from "react";
 
-const logoUrl =
-  "https://drive.google.com/uc?export=view&id=1LzLHGbSCR_gVeOtBiKPDoiFIqIVgmceM";
-
-export default function Header() {
+const Header = () => {
   return (
-    <header className="w-full bg-[#182c3b] py-3 shadow-md">
-      <div className="max-w-7xl mx-auto px-4 flex items-center justify-between">
-        
-        {/* LOGO */}
-        <img
-          src={logoUrl}
-          alt="El Doce Store"
-          className="h-12 w-auto object-contain cursor-pointer"
-        />
+    <header className="w-full bg-[#BA4A19] text-white py-12 md:py-20 relative overflow-hidden">
 
-        {/* SEARCH BAR */}
-        <div className="hidden sm:block">
-          <input
-            type="text"
-            placeholder="Buscar Pilcha..."
-            className="w-64 md:w-80 px-4 py-2 rounded-full text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#f26915]"
-          />
-        </div>
+       <div className="relative z-10 text-center max-w-3xl mx-auto px-6">
+        <h1 className="text-3xl md:text-5xl font-extrabold tracking-wide drop-shadow-md">
+          PILCHA PARA LA HINCHADA
+        </h1>
+
+        <p className="mt-4 text-lg md:text-xl font-light">
+          Elegí tu equipo favorito
+        </p>
       </div>
     </header>
   );
-}
+};
+
+export default Header;
+
