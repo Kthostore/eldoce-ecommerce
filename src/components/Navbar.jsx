@@ -2,7 +2,7 @@
 import React from "react";
 import { Search } from "lucide-react";
 
-const Navbar = ({ searchQuery, onSearch }) => {
+const Navbar = ({ searchQuery = "", onSearch }) => {
   return (
     <nav className="sticky top-0 z-40 w-full bg-[#182c3b]/90 backdrop-blur-md border-b border-white/10 shadow-sm">
 
@@ -25,7 +25,7 @@ const Navbar = ({ searchQuery, onSearch }) => {
             type="text"
             placeholder="Buscar Pilcha..."
             value={searchQuery}
-            onChange={(e) => onSearch(e.target.value)}
+            onChange={(e) => onSearch?.(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 
               bg-gray-100 
               border border-transparent 
