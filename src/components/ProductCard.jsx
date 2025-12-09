@@ -1,17 +1,16 @@
-import React from 'react';
+import React from "react";
 
-const ProductCard = ({ product }) => {
-
-  // Detecta si es ruta local, Google Drive o CDN
+const ProductCard = ({ item }) => {
+  // resolver imagen desde Drive, URL o local
   const resolveImage = (src) => {
     if (!src) return "/fallback.png";
 
-    // Si empieza con http → es una URL real
+    // URL normal
     if (src.startsWith("http://") || src.startsWith("https://")) {
       return src;
     }
 
-    // Si es Google Drive (formato viejo)
+    // Google Drive
     if (src.includes("drive.google.com")) {
       const match = src.match(/\/d\/(.*?)\//);
       if (match && match[1]) {
@@ -19,21 +18,23 @@ const ProductCard = ({ product }) => {
       }
     }
 
-    // Si es ruta local dentro de /public
+    // archivo local en /public/stickers/
     return `/stickers/${src}`;
   };
 
   return (
     <div className="p-4 rounded-xl bg-white shadow-md flex flex-col">
       <img
-        src={resolveImage(sticker.image)}
-        alt={sticker.name}
+        src={resolveImage(item.image)}
+        alt={item.name}
         className="rounded-lg w-full h-40 object-cover"
       />
 
-      <h3 className="mt-3 text-sm font-semibold text-gray-900">{sticker.name}</h3>
+      <h3 className="mt-3 text-sm font-semibold text-gray-900">{item.name}</h3>
 
-      <p className="text-lg font-bold text-price mt-1">${sticker.price}</p>
+      <p className="text-lg font-bold text-price mt-1">
+        ${item.price.toLocaleString("es-AR")}
+      </p>
 
       <button className="bg-primaryButton hover:bg-buttonHover text-icons w-full py-2 mt-3 rounded-lg transition-colors duration-200">
         Agregar al carrito
