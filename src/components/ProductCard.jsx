@@ -5,17 +5,27 @@ const ProductCard = ({ item }) => {
   const resolveImage = (src) => {
     if (!src) return "/fallback.png";
 
+    // Google Drive → normalizar a formato directo uc?export=view
+    if (src.includes("drive.google.com")) {
+      // /file/d/<id>/view
+      const pathMatch = src.match(/\/d\/(.*?)\//);
+      if (pathMatch?.[1]) {
+        return `https://drive.google.com/uc?export=view&id=${pathMatch[1]}`;
+      }
+
+      // ?id=<id>
+      const queryMatch = src.match(/[?&]id=([^&#]+)/);
+      if (queryMatch?.[1]) {
+        return `https://drive.google.com/uc?export=view&id=${queryMatch[1]}`;
+      }
+
+      // Si ya viene como uc?export=view → devolver intacto
+      return src.replace("export=download", "export=view");
+    }
+
     // URL normal
     if (src.startsWith("http://") || src.startsWith("https://")) {
       return src;
-    }
-
-    // Google Drive
-    if (src.includes("drive.google.com")) {
-      const match = src.match(/\/d\/(.*?)\//);
-      if (match && match[1]) {
-        return `https://drive.google.com/uc?export=view&id=${match[1]}`;
-      }
     }
 
     // archivo local en /public/stickers/
