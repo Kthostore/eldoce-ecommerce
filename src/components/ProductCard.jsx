@@ -2,19 +2,46 @@ import React from "react";
 
 const ProductCard = ({ item }) => {
   const extractDriveId = (url) => {
-    const patterns = [
-      /\/d\/(.*?)\//, // /file/d/<id>/view
-      /[?&]id=([^&#]+)/, // ?id=<id>
-      /\/open\/(.*?)\?/, // /open/<id>?...
-      /\/uc\/(.*?)\?/, // /uc/<id>?...
-    ];
+    try {
+      const parsed = new URL(url);
+      const { host, pathname, searchParams } = parsed;
 
-    for (const pattern of patterns) {
-      const match = url.match(pattern);
-      if (match?.[1]) return match[1];
+      if (searchParams.has("id")) return searchParams.get("id");
+
+      const fileMatch = pathname.match(/\/d\/([^/]+)/); // /file/d/<id>/...
+      if (fileMatch?.[1]) return fileMatch[1];
+
+      const openMatch = pathname.match(/\/open\/(.+)/); // /open/<id>
+      if (openMatch?.[1]) return openMatch[1].split(/[/?#]/)[0];
+
+      const ucMatch = pathname.match(/\/uc\/(.+)/); // /uc/<id>
+      if (ucMatch?.[1]) return ucMatch[1].split(/[/?#]/)[0];
+
+      // Some shared links come as /drive/folders/<id>; skip folder-like ids
+      if (pathname.includes("/folders/")) return null;
+
+      // Last resort: look for a 25+ char alphanumeric token in the URL
+      const genericMatch = url.match(/[A-Za-z0-9_-]{25,}/);
+      if (genericMatch?.[0]) return genericMatch[0];
+
+      return null;
+    } catch (e) {
+      return null;
     }
+  };
 
-    return null;
+  const isGoogleHost = (url) => {
+    try {
+      const host = new URL(url).host;
+      return (
+        host.includes("drive.google.com") ||
+        host.includes("drive.usercontent.google.com") ||
+        host.includes("googleusercontent.com") ||
+        host.includes("docs.google.com")
+      );
+    } catch (e) {
+      return false;
+    }
   };
 
   // resolver imagen desde Drive, URL o local
@@ -25,16 +52,10 @@ const ProductCard = ({ item }) => {
       return "https://via.placeholder.com/600x600/546b75/ffffff?text=Sin+imagen";
     }
 
-    const isDriveHost =
-      cleanSrc.includes("drive.google.com") ||
-      cleanSrc.includes("drive.usercontent.google.com") ||
-      cleanSrc.includes("googleusercontent.com");
-
-    if (isDriveHost) {
+    if (isGoogleHost(cleanSrc)) {
       const id = extractDriveId(cleanSrc);
       if (id) return `https://drive.google.com/uc?export=view&id=${id}`;
 
-      // Asegurar que las variantes uc?id también usen export=view
       if (cleanSrc.includes("export=download") || cleanSrc.includes("uc?id=")) {
         return cleanSrc
           .replace("export=download", "export=view")
