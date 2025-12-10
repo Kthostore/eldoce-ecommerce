@@ -56,24 +56,58 @@ const ProductCard = ({ item }) => {
       return placeholderImage;
     }
 
-    if (isGoogleHost(cleanSrc)) {
-      const id = extractDriveId(cleanSrc);
+    // Si viene solo el id de Drive
+    const driveIdOnly = /^[A-Za-z0-9_-]{25,}$/.test(cleanSrc);
+    if (driveIdOnly) {
+      return `https://drive.google.com/uc?export=view&id=${cleanSrc}`;
+    }
+
+    // Normalizar URL sin protocolo para que URL() no falle
+    const normalizedSrc = (() => {
+      if (cleanSrc.startsWith("http://") || cleanSrc.startsWith("https://")) {
+        return cleanSrc;
+      }
+
+      if (cleanSrc.startsWith("//")) {
+        return `https:${cleanSrc}`;
+      }
+
+      if (
+        cleanSrc.startsWith("drive.google.com") ||
+        cleanSrc.startsWith("docs.google.com") ||
+        cleanSrc.startsWith("lh3.googleusercontent.com") ||
+        cleanSrc.startsWith("drive.usercontent.google.com")
+      ) {
+        return `https://${cleanSrc}`;
+      }
+
+      return cleanSrc;
+    })();
+
+    if (isGoogleHost(normalizedSrc)) {
+      const id = extractDriveId(normalizedSrc);
       if (id) return `https://drive.google.com/uc?export=view&id=${id}`;
 
-      if (cleanSrc.includes("export=download") || cleanSrc.includes("uc?id=")) {
-        return cleanSrc
+      if (
+        normalizedSrc.includes("export=download") ||
+        normalizedSrc.includes("uc?id=")
+      ) {
+        return normalizedSrc
           .replace("export=download", "export=view")
           .replace("uc?id=", "uc?export=view&id=");
       }
 
-      return cleanSrc;
+      return normalizedSrc;
     }
 
-    if (cleanSrc.startsWith("http://") || cleanSrc.startsWith("https://")) {
-      return cleanSrc;
+    if (
+      normalizedSrc.startsWith("http://") ||
+      normalizedSrc.startsWith("https://")
+    ) {
+      return normalizedSrc;
     }
 
-    return `/stickers/${cleanSrc}`;
+    return `/stickers/${normalizedSrc}`;
   };
 
   return (
