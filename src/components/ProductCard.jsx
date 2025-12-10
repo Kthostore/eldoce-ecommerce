@@ -1,12 +1,16 @@
 import React from "react";
 
 const ProductCard = ({ item }) => {
+  const placeholderImage =
+    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'%3E%3Crect width='600' height='600' fill='%23546b75'/%3E%3Ctext x='50%25' y='50%25' fill='%23ffffff' font-size='32' font-family='Arial, sans-serif' dominant-baseline='middle' text-anchor='middle'%3ESin imagen%3C/text%3E%3C/svg%3E";
+
   const extractDriveId = (url) => {
     try {
       const parsed = new URL(url);
-      const { host, pathname, searchParams } = parsed;
+      const { pathname, searchParams } = parsed;
 
-      if (searchParams.has("id")) return searchParams.get("id");
+      const idFromQuery = searchParams.get("id") || searchParams.get("thid");
+      if (idFromQuery) return idFromQuery;
 
       const fileMatch = pathname.match(/\/d\/([^/]+)/); // /file/d/<id>/...
       if (fileMatch?.[1]) return fileMatch[1];
@@ -49,7 +53,7 @@ const ProductCard = ({ item }) => {
     const cleanSrc = src?.trim();
 
     if (!cleanSrc) {
-      return "https://via.placeholder.com/600x600/546b75/ffffff?text=Sin+imagen";
+      return placeholderImage;
     }
 
     if (isGoogleHost(cleanSrc)) {
@@ -79,6 +83,13 @@ const ProductCard = ({ item }) => {
           src={resolveImage(item.image)}
           alt={item.name}
           className="h-48 w-full object-cover transition duration-300 group-hover:scale-105"
+          referrerPolicy="no-referrer"
+          loading="lazy"
+          onError={(event) => {
+            if (event.currentTarget.dataset.fallback) return;
+            event.currentTarget.dataset.fallback = "true";
+            event.currentTarget.src = placeholderImage;
+          }}
         />
       </div>
 
