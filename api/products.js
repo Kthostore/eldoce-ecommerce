@@ -34,12 +34,20 @@ export default async function handler(req, res) {
         return 0;
       })();
 
+      const imageSrc =
+        (typeof item.image1 === "string" && item.image1.trim()) ||
+        (typeof item.image === "string" && item.image.trim()) ||
+        (typeof item.img === "string" && item.img.trim()) ||
+        (typeof item.photo === "string" && item.photo.trim()) ||
+        (typeof item.image_url === "string" && item.image_url.trim()) ||
+        "";
+
       return {
         id: item.Id || index + 1,
         name: item.name || "",
         price: cleanPrice,
         category: item.category?.split(",").map((c) => c.trim()) || [],
-        image: item.image1 || "",
+        image: imageSrc,
       };
     });
 
